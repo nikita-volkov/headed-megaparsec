@@ -80,6 +80,16 @@ instance (Ord err, Stream strm) => Selective (HeadedParsec err strm) where
               Right b -> return b
     TailHeadedParsec p1 -> \ hp2 -> TailHeadedParsec (selectA p1 (toParsec hp2))
 
+instance (Ord err, Stream strm) => Alternative (HeadedParsec err strm) where
+  empty = HeadHeadedParsec empty
+  (<|>) = \ case
+    HeadHeadedParsec p1 -> \ case
+      HeadHeadedParsec p2 -> HeadHeadedParsec (try p1 <|> p2)
+      TailHeadedParsec p2 -> TailHeadedParsec (try (toParsec (HeadHeadedParsec p1)) <|> p2)
+    TailHeadedParsec p1 -> \ case
+      HeadHeadedParsec p2 -> TailHeadedParsec (try p1 <|> toParsec (HeadHeadedParsec p2))
+      TailHeadedParsec p2 -> TailHeadedParsec (try p1 <|> p2)
+
 
 -- * Execution
 -------------------------
