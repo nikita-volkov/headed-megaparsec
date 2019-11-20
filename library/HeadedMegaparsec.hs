@@ -68,7 +68,24 @@ instance Functor (HeadedParsec err strm) where
 
 instance (Ord err, Stream strm) => Applicative (HeadedParsec err strm) where
   pure = HeadedParsec . pure . Left
-  (<*>) = apS
+  (<*>) (HeadedParsec p1) (HeadedParsec p2) = HeadedParsec $ do
+    junction1 <- p1
+    case junction1 of
+      Left aToB -> do
+        junction2 <- p2
+        case junction2 of
+          Left a -> return (Left (aToB a))
+          Right bodyP2 -> return $ Right $ do
+            a <- bodyP2
+            return (aToB a)
+      Right bodyP1 -> return $ Right $ do
+        aToB <- bodyP1
+        junction2 <- p2
+        case junction2 of
+          Left a -> return (aToB a)
+          Right bodyP2 -> do
+            a <- bodyP2
+            return (aToB a)
 
 instance (Ord err, Stream strm) => Selective (HeadedParsec err strm) where
   select (HeadedParsec p1) (HeadedParsec p2) = HeadedParsec $ do
