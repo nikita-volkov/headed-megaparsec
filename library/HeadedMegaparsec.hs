@@ -1,6 +1,16 @@
-module HeadedMegaparsec where
+module HeadedMegaparsec
+(
+  -- * Types
+  HeadedParsec,
+  -- * Execution
+  toParsec,
+  -- * Construction
+  head,
+  body,
+)
+where
 
-import HeadedMegaparsec.Prelude hiding (try)
+import HeadedMegaparsec.Prelude hiding (try, head, body)
 import Text.Megaparsec hiding (some, endBy1, someTill, sepBy1, sepEndBy1)
 import Text.Megaparsec.Char
 import Control.Applicative.Combinators.NonEmpty
