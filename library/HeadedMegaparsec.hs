@@ -92,7 +92,7 @@ instance (Ord err, Stream strm) => Selective (HeadedParsec err strm) where
             case eitherAOrB of
               Right b -> return b
               Left a -> do
-                junction2 <- try p2
+                junction2 <- p2
                 case junction2 of
                   Left aToB -> return (aToB a)
                   Right bodyP2 -> fmap ($ a) bodyP2
