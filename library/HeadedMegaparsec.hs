@@ -29,7 +29,12 @@ import qualified HeadedMegaparsec.Megaparsec as Megaparsec
 {-|
 Headed parser.
 
-Provides for composition between consecutive megaparsec `try` blocks.
+Abstracts over explicit composition between consecutive megaparsec `try` blocks,
+providing for better error messages.
+
+With headed parser you don't need to use `try` at all.
+
+==__Examples__
 
 >>> :{
   let
@@ -52,7 +57,19 @@ Provides for composition between consecutive megaparsec `try` blocks.
     test = parseTest (toParsec select <* eof)
 :}
 
->>> test "select limit"
+>>> test "select 1, "
+...
+unexpected ','
+...
+
+>>> test "select limit "
+...
+unexpected end of input
+expecting integer or white space
+
+>>> test "select 1, 2 limit 2"
+(Just [Right 1,Right 2],Just 2)
+
 -}
 newtype HeadedParsec err strm a = HeadedParsec (Parsec err strm (Either a (Parsec err strm a)))
 
