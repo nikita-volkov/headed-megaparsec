@@ -151,6 +151,8 @@ toParsec (HeadedParsec p) = Megaparsec.contPossibly p
 Lift a megaparsec parser as a head parser.
 
 Composing consecutive heads results in one head.
+This is the whole point of this library,
+because consecutive `try`s do not compose.
 -}
 head :: (Ord err, Stream strm) => Parsec err strm a -> HeadedParsec err strm a
 head = HeadedParsec . fmap Left
