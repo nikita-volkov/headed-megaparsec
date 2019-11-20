@@ -22,6 +22,8 @@ import qualified Text.Megaparsec.Char.Lexer as Lex
 
 {-|
 Headed parser.
+
+Provides for composition between consecutive megaparsec `try` blocks.
 -}
 data HeadedParsec err strm a =
   HeadHeadedParsec (Parsec err strm (Either a (Parsec err strm a))) |
@@ -82,6 +84,9 @@ instance (Ord err, Stream strm) => Selective (HeadedParsec err strm) where
 -- * Execution
 -------------------------
 
+{-|
+Convert headed parser into megaparsec parser.
+-}
 toParsec :: (Ord err, Stream strm) => HeadedParsec err strm a -> Parsec err strm a
 toParsec = \ case
   HeadHeadedParsec p -> do
@@ -95,8 +100,20 @@ toParsec = \ case
 -- *
 -------------------------
 
+{-|
+Lift a megaparsec parser as a head parser.
+
+Composing consecutive heads results in one head.
+-}
 head :: (Ord err, Stream strm) => Parsec err strm a -> HeadedParsec err strm a
 head = HeadHeadedParsec . fmap Left
 
+{-|
+Lift a megaparsec parser as a body parser.
+
+Composing consecutive bodies results in one body.
+
+Composing consecutive head and body leaves the head still composable with preceding head.
+-}
 body :: (Stream strm) => Parsec err strm a -> HeadedParsec err strm a
 body = TailHeadedParsec
