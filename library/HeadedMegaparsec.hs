@@ -54,9 +54,7 @@ Provides for composition between consecutive megaparsec `try` blocks.
 
 >>> test "select limit"
 -}
-data HeadedParsec err strm a =
-  HeadHeadedParsec (Parsec err strm (Either a (Parsec err strm a))) |
-  BodyHeadedParsec (Parsec err strm a)
+newtype HeadedParsec err strm a = HeadedParsec (Parsec err strm (Either a (Parsec err strm a)))
 
 
 -- * Instances
@@ -66,58 +64,40 @@ data HeadedParsec err strm a =
 -------------------------
 
 instance Functor (HeadedParsec err strm) where
-  fmap fn = \ case
-    HeadHeadedParsec p -> HeadHeadedParsec (fmap (bimap fn (fmap fn)) p)
-    BodyHeadedParsec p -> BodyHeadedParsec (fmap fn p)
+  fmap fn (HeadedParsec p) = HeadedParsec (fmap (bimap fn (fmap fn)) p)
 
 instance (Ord err, Stream strm) => Applicative (HeadedParsec err strm) where
-  pure = HeadHeadedParsec . pure . Left
+  pure = HeadedParsec . pure . Left
   (<*>) = apS
 
 instance (Ord err, Stream strm) => Selective (HeadedParsec err strm) where
-  select = \ case
-    HeadHeadedParsec p1 -> \ case
-      HeadHeadedParsec p2 -> HeadHeadedParsec $ do
-        junction1 <- p1
-        case junction1 of
-          Left eitherAOrB -> case eitherAOrB of
-            Right b -> return (Left b)
-            Left a -> do
-              junction2 <- p2
-              case junction2 of
-                Left aToB -> return (Left (aToB a))
-                Right bodyP2 -> return (Right (fmap ($ a) bodyP2))
-          Right bodyP1 -> return $ Right $ do
-            eitherAOrB <- bodyP1
-            case eitherAOrB of
-              Right b -> return b
-              Left a -> do
-                junction2 <- p2
-                case junction2 of
-                  Left aToB -> return (aToB a)
-                  Right bodyP2 -> fmap ($ a) bodyP2
-      BodyHeadedParsec p2 -> HeadHeadedParsec $ do
-        junction1 <- p1
-        case junction1 of
-          Left eitherAOrB -> case eitherAOrB of
-            Left a -> return (Right (fmap ($ a) p2))
-            Right b -> return (Left b)
-          Right bodyP1 -> return $ Right $ do
-            eitherAOrB <- bodyP1
-            case eitherAOrB of
-              Left a -> fmap ($ a) p2
-              Right b -> return b
-    BodyHeadedParsec p1 -> \ hp2 -> BodyHeadedParsec (selectA p1 (toParsec hp2))
+  select (HeadedParsec p1) (HeadedParsec p2) = HeadedParsec $ do
+    junction1 <- p1
+    case junction1 of
+      Left eitherAOrB -> case eitherAOrB of
+        Right b -> return (Left b)
+        Left a -> do
+          junction2 <- p2
+          case junction2 of
+            Left aToB -> return (Left (aToB a))
+            Right bodyP2 -> return (Right (fmap ($ a) bodyP2))
+      Right bodyP1 -> return $ Right $ do
+        eitherAOrB <- bodyP1
+        case eitherAOrB of
+          Right b -> return b
+          Left a -> do
+            junction2 <- p2
+            case junction2 of
+              Left aToB -> return (aToB a)
+              Right bodyP2 -> fmap ($ a) bodyP2
 
+{-|
+Alternation is performed only the basis of heads.
+Bodies do not participate.
+-}
 instance (Ord err, Stream strm) => Alternative (HeadedParsec err strm) where
-  empty = HeadHeadedParsec empty
-  (<|>) = \ case
-    HeadHeadedParsec p1 -> \ case
-      HeadHeadedParsec p2 -> HeadHeadedParsec (try p1 <|> p2)
-      BodyHeadedParsec p2 -> BodyHeadedParsec (Megaparsec.contPossibly p1 <|> p2)
-    BodyHeadedParsec p1 -> \ case
-      HeadHeadedParsec p2 -> BodyHeadedParsec (try p1 <|> toParsec (HeadHeadedParsec p2))
-      BodyHeadedParsec p2 -> BodyHeadedParsec (try p1 <|> p2)
+  empty = HeadedParsec empty
+  (<|>) (HeadedParsec p1) (HeadedParsec p2) = HeadedParsec (try p1 <|> p2)
 
 
 -- * Execution
@@ -127,9 +107,7 @@ instance (Ord err, Stream strm) => Alternative (HeadedParsec err strm) where
 Convert headed parser into megaparsec parser.
 -}
 toParsec :: (Ord err, Stream strm) => HeadedParsec err strm a -> Parsec err strm a
-toParsec = \ case
-  HeadHeadedParsec p -> Megaparsec.contPossibly p
-  BodyHeadedParsec p -> p
+toParsec (HeadedParsec p) = Megaparsec.contPossibly p
 
 
 -- *
@@ -141,7 +119,7 @@ Lift a megaparsec parser as a head parser.
 Composing consecutive heads results in one head.
 -}
 head :: (Ord err, Stream strm) => Parsec err strm a -> HeadedParsec err strm a
-head = HeadHeadedParsec . fmap Left
+head = HeadedParsec . fmap Left
 
 {-|
 Lift a megaparsec parser as a body parser.
@@ -151,4 +129,4 @@ Composing consecutive bodies results in one body.
 Composing consecutive head and body leaves the head still composable with preceding head.
 -}
 body :: (Stream strm) => Parsec err strm a -> HeadedParsec err strm a
-body = BodyHeadedParsec
+body = HeadedParsec . return . Right
