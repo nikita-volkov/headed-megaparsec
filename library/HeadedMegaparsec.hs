@@ -71,7 +71,7 @@ instance Functor (HeadedParsec err strm) where
     BodyHeadedParsec p -> BodyHeadedParsec (fmap fn p)
 
 instance (Ord err, Stream strm) => Applicative (HeadedParsec err strm) where
-  pure = HeadHeadedParsec . pure . pure . pure
+  pure = HeadHeadedParsec . pure . Left
   (<*>) = apS
 
 instance (Ord err, Stream strm) => Selective (HeadedParsec err strm) where
