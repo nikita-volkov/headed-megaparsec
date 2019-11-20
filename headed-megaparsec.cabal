@@ -23,6 +23,7 @@ library
   exposed-modules:
     HeadedMegaparsec
   other-modules:
+    HeadedMegaparsec.Megaparsec
     HeadedMegaparsec.Prelude
   build-depends:
     base >=4.9 && <5,

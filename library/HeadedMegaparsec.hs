@@ -15,6 +15,7 @@ import Text.Megaparsec hiding (some, endBy1, someTill, sepBy1, sepEndBy1)
 import Text.Megaparsec.Char
 import Control.Applicative.Combinators
 import qualified Text.Megaparsec.Char.Lexer as Lexer
+import qualified HeadedMegaparsec.Megaparsec as Megaparsec
 
 {- $setup
 
@@ -113,7 +114,7 @@ instance (Ord err, Stream strm) => Alternative (HeadedParsec err strm) where
   (<|>) = \ case
     HeadHeadedParsec p1 -> \ case
       HeadHeadedParsec p2 -> HeadHeadedParsec (try p1 <|> p2)
-      BodyHeadedParsec p2 -> BodyHeadedParsec (try (toParsec (HeadHeadedParsec p1)) <|> p2)
+      BodyHeadedParsec p2 -> BodyHeadedParsec (Megaparsec.contPossibly p1 <|> p2)
     BodyHeadedParsec p1 -> \ case
       HeadHeadedParsec p2 -> BodyHeadedParsec (try p1 <|> toParsec (HeadHeadedParsec p2))
       BodyHeadedParsec p2 -> BodyHeadedParsec (try p1 <|> p2)
@@ -127,11 +128,7 @@ Convert headed parser into megaparsec parser.
 -}
 toParsec :: (Ord err, Stream strm) => HeadedParsec err strm a -> Parsec err strm a
 toParsec = \ case
-  HeadHeadedParsec p -> do
-    junction <- try p
-    case junction of
-      Left a -> return a
-      Right bodyP -> bodyP
+  HeadHeadedParsec p -> Megaparsec.contPossibly p
   BodyHeadedParsec p -> p
 
 
