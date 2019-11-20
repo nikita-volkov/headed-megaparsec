@@ -13,9 +13,14 @@ where
 import HeadedMegaparsec.Prelude hiding (try, head, body)
 import Text.Megaparsec hiding (some, endBy1, someTill, sepBy1, sepEndBy1)
 import Text.Megaparsec.Char
-import Control.Applicative.Combinators.NonEmpty
-import qualified Text.Megaparsec.Char.Lexer as Lex
+import Control.Applicative.Combinators
+import qualified Text.Megaparsec.Char.Lexer as Lexer
 
+{- $setup
+
+>>> :set -XApplicativeDo
+
+-}
 
 -- * Types
 -------------------------
@@ -24,6 +29,29 @@ import qualified Text.Megaparsec.Char.Lexer as Lex
 Headed parser.
 
 Provides for composition between consecutive megaparsec `try` blocks.
+
+>>> :{
+  let
+    select :: HeadedParsec Void Text (Maybe [Either Char Int], Maybe Int)
+    select = do
+      head (string' "select")
+      _targets <- optional (head space1 *> targets)
+      _limit <- optional (head space1 *> limit)
+      return (_targets, _limit)
+      where
+        targets = sepBy1 target commaSeparator
+        target =
+          head (Left <$> char '*') <|>
+          head (Right <$> Lexer.decimal)
+        commaSeparator = head (space *> char ',' *> space)
+        limit =
+          head (string' "limit" *> space1) *>
+          body Lexer.decimal
+    test :: Text -> IO ()
+    test = parseTest (toParsec select <* eof)
+:}
+
+>>> test "select limit"
 -}
 data HeadedParsec err strm a =
   HeadHeadedParsec (Parsec err strm (Either a (Parsec err strm a))) |
