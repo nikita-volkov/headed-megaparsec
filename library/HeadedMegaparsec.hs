@@ -7,6 +7,7 @@ module HeadedMegaparsec
   -- * Construction
   head,
   body,
+  headAndBody,
 )
 where
 
@@ -180,3 +181,13 @@ Composing consecutive head and body leaves the head still composable with preced
 -}
 body :: (Stream strm) => Parsec err strm a -> HeadedParsec err strm a
 body = HeadedParsec . return . Right
+
+{-|
+Lift both head and body megaparsec parsers, composing their results.
+-}
+headAndBody :: (Ord err, Stream strm) => (head -> body -> a) -> Parsec err strm head -> Parsec err strm body -> HeadedParsec err strm a
+headAndBody fn headP bodyP = HeadedParsec $ do
+  a <- headP
+  return $ Right $ do
+    b <- bodyP
+    return (fn a b)
