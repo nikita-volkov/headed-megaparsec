@@ -220,7 +220,9 @@ label label = mapParsec (Megaparsec.label label)
 Make a parser print debugging information when evaluated.
 The first parameter is a custom label.
 
-This function is merely a wrapper around `Megaparsec.dbg`.
+This function is a wrapper around `Megaparsec.dbg`.
+For compatibility reasons it has to force headify on the wrapped parser.
+Keep that in mind, because due to that your parser will behave differently in these terms.
 -}
 dbg :: (Ord err, Megaparsec.ShowErrorComponent err, Stream strm, Show a) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
 dbg label = mapParsec $ \ p -> fmap Left $ Megaparsec.dbg label $ Megaparsec.contPossibly p
