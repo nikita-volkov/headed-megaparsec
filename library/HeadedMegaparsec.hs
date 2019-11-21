@@ -13,12 +13,12 @@ module HeadedMegaparsec
 where
 
 import HeadedMegaparsec.Prelude hiding (try, head, body)
-import Text.Megaparsec hiding (some, endBy1, someTill, sepBy1, sepEndBy1, label)
-import Text.Megaparsec.Char
 import Control.Applicative.Combinators
-import qualified Text.Megaparsec.Char.Lexer as Lexer
-import qualified Text.Megaparsec as Megaparsec
+import Text.Megaparsec (Parsec, Stream)
 import qualified HeadedMegaparsec.Megaparsec as Megaparsec
+import qualified Text.Megaparsec as Megaparsec
+import qualified Text.Megaparsec.Char as MegaparsecChar
+import qualified Text.Megaparsec.Char.Lexer as MegaparsecLexer
 import qualified Data.Text as Text
 
 {- $setup
@@ -135,7 +135,7 @@ Bodies do not participate.
 -}
 instance (Ord err, Stream strm) => Alternative (HeadedParsec err strm) where
   empty = HeadedParsec empty
-  (<|>) (HeadedParsec p1) (HeadedParsec p2) = HeadedParsec (try p1 <|> p2)
+  (<|>) (HeadedParsec p1) (HeadedParsec p2) = HeadedParsec (Megaparsec.try p1 <|> p2)
 
 
 -- * Execution
