@@ -95,6 +95,9 @@ import Data.Map.Strict as Exports (Map)
 import Data.Sequence as Exports (Seq)
 import Data.Set as Exports (Set)
 
+-- case-insensitive
+-------------------------
+import Data.CaseInsensitive as Exports (CI, FoldCase)
 
 showAsText :: Show a => a -> Text
 showAsText = show >>> fromString

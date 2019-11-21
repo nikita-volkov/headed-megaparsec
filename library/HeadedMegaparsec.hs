@@ -9,6 +9,15 @@ module HeadedMegaparsec
   body,
   headAndBody,
   label,
+  -- ** Primitives
+  space,
+  space1,
+  char,
+  char',
+  string,
+  string',
+  takeWhileP,
+  takeWhile1P,
 )
 where
 
@@ -206,5 +215,57 @@ headAndBody fn headP bodyP = HeadedParsec $ do
 Label a headed parser.
 Works the same way as megaparsec's `Megaparsec.label`.
 -}
-label :: (Ord err, Stream strm) => Text -> HeadedParsec err strm a -> HeadedParsec err strm a
-label text = mapParsec (Megaparsec.label (Text.unpack text))
+label :: (Ord err, Stream strm) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
+label label = mapParsec (Megaparsec.label label)
+
+
+-- * Primitives
+-------------------------
+
+{-|
+Megaparsec `Megaparsec.space` lifted as head.
+-}
+space :: (Ord err, Stream strm, Megaparsec.Token strm ~ Char) => HeadedParsec err strm ()
+space = head MegaparsecChar.space
+
+{-|
+Megaparsec `Megaparsec.space1` lifted as head.
+-}
+space1 :: (Ord err, Stream strm, Megaparsec.Token strm ~ Char) => HeadedParsec err strm ()
+space1 = head MegaparsecChar.space1
+
+{-|
+Megaparsec `Megaparsec.char` lifted as head.
+-}
+char :: (Ord err, Stream strm, Megaparsec.Token strm ~ Char) => Char -> HeadedParsec err strm Char
+char a = head (MegaparsecChar.char a)
+
+{-|
+Megaparsec `Megaparsec.char'` lifted as head.
+-}
+char' :: (Ord err, Stream strm, Megaparsec.Token strm ~ Char) => Char -> HeadedParsec err strm Char
+char' a = head (MegaparsecChar.char' a)
+
+{-|
+Megaparsec `Megaparsec.string` lifted as head.
+-}
+string :: (Ord err, Stream strm) => Megaparsec.Tokens strm -> HeadedParsec err strm (Megaparsec.Tokens strm)
+string = head . MegaparsecChar.string
+
+{-|
+Megaparsec `Megaparsec.string'` lifted as head.
+-}
+string' :: (Ord err, Stream strm, FoldCase (Megaparsec.Tokens strm)) => Megaparsec.Tokens strm -> HeadedParsec err strm (Megaparsec.Tokens strm)
+string' = head . MegaparsecChar.string'
+
+{-|
+Megaparsec `Megaparsec.takeWhileP` lifted as head.
+-}
+takeWhileP :: (Ord err, Stream strm) => Maybe String -> (Megaparsec.Token strm -> Bool) -> HeadedParsec err strm (Megaparsec.Tokens strm)
+takeWhileP label predicate = head (Megaparsec.takeWhileP label predicate)
+
+{-|
+Megaparsec `Megaparsec.takeWhile1P` lifted as head.
+-}
+takeWhile1P :: (Ord err, Stream strm) => Maybe String -> (Megaparsec.Token strm -> Bool) -> HeadedParsec err strm (Megaparsec.Tokens strm)
+takeWhile1P label predicate = head (Megaparsec.takeWhile1P label predicate)
