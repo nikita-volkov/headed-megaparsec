@@ -11,6 +11,8 @@ module HeadedMegaparsec
   head,
   tail,
   headAndTail,
+  -- ** Control
+  endHead,
   -- ** Primitives
   eof,
   space,
@@ -230,6 +232,16 @@ headAndTail fn headP tailP = HeadedParsec $ do
   return $ Right $ do
     b <- tailP
     return (fn a b)
+
+
+-- * Control
+-------------------------
+
+{-|
+Make all the following parsers compose to tail.
+-}
+endHead :: (Stream strm) => HeadedParsec err strm ()
+endHead = HeadedParsec (return (Right (return ())))
 
 
 -- * Primitives
