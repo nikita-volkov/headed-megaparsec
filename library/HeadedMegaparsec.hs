@@ -95,9 +95,20 @@ expecting integer or white space
 -}
 newtype HeadedParsec err strm a = HeadedParsec (Parsec err strm (Either a (Parsec err strm a)))
 
+{-|
+A helper required for hacking `dbg`.
+-}
+data Showable a = Showable String a
+
 
 -- * Instances
 -------------------------
+
+-- ** Showable
+-------------------------
+
+instance Show (Showable a) where
+  show (Showable msg _) = msg
 
 -- ** HeadedParsec
 -------------------------
@@ -221,11 +232,14 @@ Make a parser print debugging information when evaluated.
 The first parameter is a custom label.
 
 This function is a wrapper around `Megaparsec.dbg`.
-For compatibility reasons it has to force headify on the wrapped parser.
-Keep that in mind, because due to that your parser will behave differently in these terms.
+It generates two debugging entries: one for head and one for tail.
 -}
 dbg :: (Ord err, Megaparsec.ShowErrorComponent err, Stream strm, Show a) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
-dbg label = mapParsec $ \ p -> fmap Left $ Megaparsec.dbg label $ Megaparsec.contPossibly p
+dbg label = mapParsec $ \ p -> do
+  junction <- Megaparsec.dbg (label <> "/head") (fmap (second (Showable "tail parser")) p)
+  case junction of
+    Left a -> return (Left a)
+    Right (Showable _ tailP) -> return $ Right $ Megaparsec.dbg (label <> "/tail") tailP
 
 {-|
 Filter the results of parser based on a predicate,
