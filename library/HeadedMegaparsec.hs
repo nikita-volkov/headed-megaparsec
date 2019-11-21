@@ -12,6 +12,7 @@ module HeadedMegaparsec
   tail,
   headAndTail,
   -- ** Primitives
+  eof,
   space,
   space1,
   char,
@@ -233,6 +234,12 @@ headAndTail fn headP tailP = HeadedParsec $ do
 
 -- * Primitives
 -------------------------
+
+{-|
+Megaparsec `Megaparsec.eof` lifted as head.
+-}
+eof :: (Ord err, Stream strm) => HeadedParsec err strm ()
+eof = head Megaparsec.eof
 
 {-|
 Megaparsec `Megaparsec.space` lifted as head.
