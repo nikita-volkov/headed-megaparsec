@@ -7,6 +7,7 @@ module HeadedMegaparsec
   -- * Transformation
   tailify,
   label,
+  filter,
   -- * Construction
   head,
   tail,
@@ -26,7 +27,7 @@ module HeadedMegaparsec
 )
 where
 
-import HeadedMegaparsec.Prelude hiding (try, head, tail)
+import HeadedMegaparsec.Prelude hiding (try, head, tail, filter)
 import Control.Applicative.Combinators
 import Text.Megaparsec (Parsec, Stream)
 import qualified HeadedMegaparsec.Megaparsec as Megaparsec
@@ -205,6 +206,23 @@ Works the same way as megaparsec's `Megaparsec.label`.
 -}
 label :: (Ord err, Stream strm) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
 label label = mapParsec (Megaparsec.label label)
+
+{-|
+Filter the results of parser based on a predicate,
+failing with a parameterized message.
+-}
+filter :: (Ord err, Stream strm) => (a -> String) -> (a -> Bool) -> HeadedParsec err strm a -> HeadedParsec err strm a
+filter err pred = mapParsec $ \ p -> do
+  junction <- p
+  case junction of
+    Left a -> if pred a
+      then return (Left a)
+      else fail (err a)
+    Right tailP -> return $ Right $ do
+      a <- tailP
+      if pred a
+        then return a
+        else fail (err a)
 
 
 -- *
