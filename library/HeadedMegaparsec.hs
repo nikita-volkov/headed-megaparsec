@@ -4,11 +4,13 @@ module HeadedMegaparsec
   HeadedParsec,
   -- * Execution
   toParsec,
+  -- * Transformation
+  bodify,
+  label,
   -- * Construction
   head,
   body,
   headAndBody,
-  label,
   -- ** Primitives
   space,
   space1,
@@ -164,6 +166,23 @@ mapParsec :: (Parsec err1 strm1 (Either res1 (Parsec err1 strm1 res1)) -> Parsec
 mapParsec fn (HeadedParsec p) = HeadedParsec (fn p)
 
 
+-- * Transformation
+-------------------------
+
+{-|
+Make any parser a body parser.
+-}
+bodify :: (Ord err, Stream strm) => HeadedParsec err strm a -> HeadedParsec err strm a
+bodify = mapParsec $ return . Right . Megaparsec.contPossibly
+
+{-|
+Label a headed parser.
+Works the same way as megaparsec's `Megaparsec.label`.
+-}
+label :: (Ord err, Stream strm) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
+label label = mapParsec (Megaparsec.label label)
+
+
 -- *
 -------------------------
 
@@ -210,13 +229,6 @@ headAndBody fn headP bodyP = HeadedParsec $ do
   return $ Right $ do
     b <- bodyP
     return (fn a b)
-
-{-|
-Label a headed parser.
-Works the same way as megaparsec's `Megaparsec.label`.
--}
-label :: (Ord err, Stream strm) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
-label label = mapParsec (Megaparsec.label label)
 
 
 -- * Primitives
