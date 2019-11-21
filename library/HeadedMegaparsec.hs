@@ -153,6 +153,20 @@ Lift a megaparsec parser as a head parser.
 Composing consecutive heads results in one head.
 This is the whole point of this library,
 because consecutive `try`s do not compose.
+
+Wrap the parts that uniquely distinguish the parser amongst its possible alternatives.
+It only makes sense to wrap the parts in the beginning of the parser,
+because once you hit body, all the following heads will be treated as body as well.
+
+E.g., in case of SQL if a statement begins with a keyword "select",
+we can be certain that what follows it needs to be parsed as select.
+This means that it would make sense to declare the parsers thus:
+
+>stmt = SelectStmt <$> select <|> InsertStmt <$> insert ...
+>select = head (string' "select") *> body (...)
+>insert = head (string' "insert") *> body (...)
+>update = head (string' "update") *> body (...)
+>delete = head (string' "delete") *> body (...)
 -}
 head :: (Ord err, Stream strm) => Parsec err strm a -> HeadedParsec err strm a
 head = HeadedParsec . fmap Left
