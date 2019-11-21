@@ -143,6 +143,16 @@ instance (Ord err, Stream strm) => Selective (HeadedParsec err strm) where
               Left aToB -> return (aToB a)
               Right tailP2 -> fmap ($ a) tailP2
 
+instance (Ord err, Stream strm) => Monad (HeadedParsec err strm) where
+  return = pure
+  (>>=) (HeadedParsec p1) k2 = HeadedParsec $ do
+    junction1 <- p1
+    case junction1 of
+      Left a -> case k2 a of HeadedParsec p2 -> p2
+      Right tailP1 -> return $ Right $ do
+        a <- tailP1
+        Megaparsec.contPossibly $ case k2 a of HeadedParsec p2 -> p2
+
 {-|
 Alternation is performed only the basis of heads.
 Bodies do not participate.
@@ -150,6 +160,17 @@ Bodies do not participate.
 instance (Ord err, Stream strm) => Alternative (HeadedParsec err strm) where
   empty = HeadedParsec empty
   (<|>) (HeadedParsec p1) (HeadedParsec p2) = HeadedParsec (Megaparsec.try p1 <|> p2)
+
+{-|
+Alternation is performed only the basis of heads.
+Bodies do not participate.
+-}
+instance (Ord err, Stream strm) => MonadPlus (HeadedParsec err strm) where
+  mzero = empty
+  mplus = (<|>)
+
+instance (Ord err, Stream strm) => MonadFail (HeadedParsec err strm) where
+  fail = HeadedParsec . fail
 
 
 -- * Execution
