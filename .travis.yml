@@ -9,7 +9,7 @@ env:
 
 install:
   # Set up the Shell to treat the semicolon as &&
-  - set -o pipefail && set -e
+  - set -eo pipefail
   # Install GHC and Cabal
   -
     cabal=${cabal=2.4};
