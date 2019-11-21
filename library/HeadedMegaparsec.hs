@@ -8,6 +8,7 @@ module HeadedMegaparsec
   headify,
   tailify,
   label,
+  dbg,
   filter,
   -- * Construction
   head,
@@ -33,6 +34,7 @@ import Control.Applicative.Combinators
 import Text.Megaparsec (Parsec, Stream)
 import qualified HeadedMegaparsec.Megaparsec as Megaparsec
 import qualified Text.Megaparsec as Megaparsec
+import qualified Text.Megaparsec.Debug as Megaparsec
 import qualified Text.Megaparsec.Char as MegaparsecChar
 import qualified Text.Megaparsec.Char.Lexer as MegaparsecLexer
 import qualified Data.Text as Text
@@ -213,6 +215,15 @@ Works the same way as megaparsec's `Megaparsec.label`.
 -}
 label :: (Ord err, Stream strm) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
 label label = mapParsec (Megaparsec.label label)
+
+{-|
+Make a parser print debugging information when evaluated.
+The first parameter is a custom label.
+
+This function is merely a wrapper around `Megaparsec.dbg`.
+-}
+dbg :: (Ord err, Megaparsec.ShowErrorComponent err, Stream strm, Show a) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
+dbg label = mapParsec $ \ p -> fmap Left $ Megaparsec.dbg label $ Megaparsec.contPossibly p
 
 {-|
 Filter the results of parser based on a predicate,
