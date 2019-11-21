@@ -236,10 +236,10 @@ It generates two debugging entries: one for head and one for tail.
 -}
 dbg :: (Ord err, Megaparsec.ShowErrorComponent err, Stream strm, Show a) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
 dbg label = mapParsec $ \ p -> do
-  junction <- Megaparsec.dbg (label <> "/head") (fmap (second (Showable "tail parser")) p)
+  Showable _ junction <- Megaparsec.dbg (label <> "/head") (fmap (either (\ a -> Showable (show a) (Left a)) (Showable "<tail parser>" . Right)) p)
   case junction of
     Left a -> return (Left a)
-    Right (Showable _ tailP) -> return $ Right $ Megaparsec.dbg (label <> "/tail") tailP
+    Right tailP -> return $ Right $ Megaparsec.dbg (label <> "/tail") tailP
 
 {-|
 Filter the results of parser based on a predicate,
