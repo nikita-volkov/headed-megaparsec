@@ -8,15 +8,18 @@ module HeadedMegaparsec
   head,
   body,
   headAndBody,
+  label,
 )
 where
 
 import HeadedMegaparsec.Prelude hiding (try, head, body)
-import Text.Megaparsec hiding (some, endBy1, someTill, sepBy1, sepEndBy1)
+import Text.Megaparsec hiding (some, endBy1, someTill, sepBy1, sepEndBy1, label)
 import Text.Megaparsec.Char
 import Control.Applicative.Combinators
 import qualified Text.Megaparsec.Char.Lexer as Lexer
+import qualified Text.Megaparsec as Megaparsec
 import qualified HeadedMegaparsec.Megaparsec as Megaparsec
+import qualified Data.Text as Text
 
 {- $setup
 
@@ -145,6 +148,13 @@ toParsec :: (Ord err, Stream strm) => HeadedParsec err strm a -> Parsec err strm
 toParsec (HeadedParsec p) = Megaparsec.contPossibly p
 
 
+-- * Helpers
+-------------------------
+
+mapParsec :: (Parsec err1 strm1 (Either res1 (Parsec err1 strm1 res1)) -> Parsec err2 strm2 (Either res2 (Parsec err2 strm2 res2))) -> HeadedParsec err1 strm1 res1 -> HeadedParsec err2 strm2 res2
+mapParsec fn (HeadedParsec p) = HeadedParsec (fn p)
+
+
 -- *
 -------------------------
 
@@ -191,3 +201,10 @@ headAndBody fn headP bodyP = HeadedParsec $ do
   return $ Right $ do
     b <- bodyP
     return (fn a b)
+
+{-|
+Label a headed parser.
+Works the same way as megaparsec's `Megaparsec.label`.
+-}
+label :: (Ord err, Stream strm) => Text -> HeadedParsec err strm a -> HeadedParsec err strm a
+label text = mapParsec (Megaparsec.label (Text.unpack text))
