@@ -5,12 +5,12 @@ module HeadedMegaparsec
   -- * Execution
   toParsec,
   -- * Transformation
-  bodify,
+  tailify,
   label,
   -- * Construction
   head,
-  body,
-  headAndBody,
+  tail,
+  headAndTail,
   -- ** Primitives
   space,
   space1,
@@ -23,7 +23,7 @@ module HeadedMegaparsec
 )
 where
 
-import HeadedMegaparsec.Prelude hiding (try, head, body)
+import HeadedMegaparsec.Prelude hiding (try, head, tail)
 import Control.Applicative.Combinators
 import Text.Megaparsec (Parsec, Stream)
 import qualified HeadedMegaparsec.Megaparsec as Megaparsec
@@ -67,7 +67,7 @@ With headed parser you don't need to use `try` at all.
         commaSeparator = head (space *> char ',' *> space)
         limit =
           head (string' "limit" *> space1) *>
-          body Lexer.decimal
+          tail Lexer.decimal
     test :: Text -> IO ()
     test = parseTest (toParsec select <* eof)
 :}
@@ -107,16 +107,16 @@ instance (Ord err, Stream strm) => Applicative (HeadedParsec err strm) where
         junction2 <- p2
         case junction2 of
           Left a -> return (Left (aToB a))
-          Right bodyP2 -> return $ Right $ do
-            a <- bodyP2
+          Right tailP2 -> return $ Right $ do
+            a <- tailP2
             return (aToB a)
-      Right bodyP1 -> return $ Right $ do
-        aToB <- bodyP1
+      Right tailP1 -> return $ Right $ do
+        aToB <- tailP1
         junction2 <- p2
         case junction2 of
           Left a -> return (aToB a)
-          Right bodyP2 -> do
-            a <- bodyP2
+          Right tailP2 -> do
+            a <- tailP2
             return (aToB a)
 
 instance (Ord err, Stream strm) => Selective (HeadedParsec err strm) where
@@ -129,16 +129,16 @@ instance (Ord err, Stream strm) => Selective (HeadedParsec err strm) where
           junction2 <- p2
           case junction2 of
             Left aToB -> return (Left (aToB a))
-            Right bodyP2 -> return (Right (fmap ($ a) bodyP2))
-      Right bodyP1 -> return $ Right $ do
-        eitherAOrB <- bodyP1
+            Right tailP2 -> return (Right (fmap ($ a) tailP2))
+      Right tailP1 -> return $ Right $ do
+        eitherAOrB <- tailP1
         case eitherAOrB of
           Right b -> return b
           Left a -> do
             junction2 <- p2
             case junction2 of
               Left aToB -> return (aToB a)
-              Right bodyP2 -> fmap ($ a) bodyP2
+              Right tailP2 -> fmap ($ a) tailP2
 
 {-|
 Alternation is performed only the basis of heads.
@@ -170,10 +170,10 @@ mapParsec fn (HeadedParsec p) = HeadedParsec (fn p)
 -------------------------
 
 {-|
-Make any parser a body parser.
+Make any parser a tail parser.
 -}
-bodify :: (Ord err, Stream strm) => HeadedParsec err strm a -> HeadedParsec err strm a
-bodify = mapParsec $ return . Right . Megaparsec.contPossibly
+tailify :: (Ord err, Stream strm) => HeadedParsec err strm a -> HeadedParsec err strm a
+tailify = mapParsec $ return . Right . Megaparsec.contPossibly
 
 {-|
 Label a headed parser.
@@ -195,39 +195,39 @@ because consecutive `try`s do not compose.
 
 Wrap the parts that uniquely distinguish the parser amongst its possible alternatives.
 It only makes sense to wrap the parts in the beginning of the parser,
-because once you hit body, all the following heads will be treated as body as well.
+because once you hit tail, all the following heads will be treated as tail as well.
 
 E.g., in case of SQL if a statement begins with a keyword "select",
 we can be certain that what follows it needs to be parsed as select.
 This means that it would make sense to declare the parsers thus:
 
 >stmt = SelectStmt <$> select <|> InsertStmt <$> insert ...
->select = head (string' "select") *> body (...)
->insert = head (string' "insert") *> body (...)
->update = head (string' "update") *> body (...)
->delete = head (string' "delete") *> body (...)
+>select = head (string' "select") *> tail (...)
+>insert = head (string' "insert") *> tail (...)
+>update = head (string' "update") *> tail (...)
+>delete = head (string' "delete") *> tail (...)
 -}
 head :: (Ord err, Stream strm) => Parsec err strm a -> HeadedParsec err strm a
 head = HeadedParsec . fmap Left
 
 {-|
-Lift a megaparsec parser as a body parser.
+Lift a megaparsec parser as a tail parser.
 
-Composing consecutive bodies results in one body.
+Composing consecutive tails results in one tail.
 
-Composing consecutive head and body leaves the head still composable with preceding head.
+Composing consecutive head and tail leaves the head still composable with preceding head.
 -}
-body :: (Stream strm) => Parsec err strm a -> HeadedParsec err strm a
-body = HeadedParsec . return . Right
+tail :: (Stream strm) => Parsec err strm a -> HeadedParsec err strm a
+tail = HeadedParsec . return . Right
 
 {-|
-Lift both head and body megaparsec parsers, composing their results.
+Lift both head and tail megaparsec parsers, composing their results.
 -}
-headAndBody :: (Ord err, Stream strm) => (head -> body -> a) -> Parsec err strm head -> Parsec err strm body -> HeadedParsec err strm a
-headAndBody fn headP bodyP = HeadedParsec $ do
+headAndTail :: (Ord err, Stream strm) => (head -> tail -> a) -> Parsec err strm head -> Parsec err strm tail -> HeadedParsec err strm a
+headAndTail fn headP tailP = HeadedParsec $ do
   a <- headP
   return $ Right $ do
-    b <- bodyP
+    b <- tailP
     return (fn a b)
 
 
