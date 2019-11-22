@@ -43,31 +43,41 @@ With headed parser you don't need to use `try` at all.
 
 ==__Examples__
 
+>>> import qualified Text.Megaparsec as M
+>>> import qualified Text.Megaparsec.Char as M
+>>> import qualified Text.Megaparsec.Char.Lexer as ML
 >>> :{
   let
-    select :: HeadedParsec Void Text (Maybe [Either Char Int], Maybe Int)
+    select :: HeadedParsec Void String (Maybe [Either Char Int], Maybe Int)
     select = do
-      head (string' "select")
-      _targets <- optional (head space1 *> targets)
-      _limit <- optional (head space1 *> limit)
+      string' "select"
+      endHead
+      _targets <- optional (space1 *> targets)
+      _limit <- optional (space1 *> limit)
       return (_targets, _limit)
       where
+        -- Lifted versions of basic parsers:
+        char = parse . M.char
+        space = parse M.space
+        space1 = parse M.space1
+        decimal = parse ML.decimal
+        string' = parse . M.string'
+        -- Syntax parsers:
         targets = sepBy1 target commaSeparator
-        target =
-          head (Left <$> char '*') <|>
-          head (Right <$> Lexer.decimal)
-        commaSeparator = head (space *> char ',' *> space)
-        limit =
-          head (string' "limit" *> space1) *>
-          tail Lexer.decimal
-    test :: Text -> IO ()
-    test = parseTest (toParsec select <* eof)
+        target = Left <$> char '*' <|> Right <$> decimal
+        commaSeparator = space *> char ',' *> endHead *> space
+        limit = string' "limit" *> endHead *> space1 *> decimal
+    test :: String -> IO ()
+    test = M.parseTest (toParsec select <* M.eof)
 :}
 
 >>> test "select 1, "
-...
-unexpected ','
-...
+1:11:
+  |
+1 | select 1, 
+  |           ^
+unexpected end of input
+expecting '*', integer, or white space
 
 >>> test "select limit "
 ...
