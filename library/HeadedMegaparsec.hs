@@ -5,15 +5,12 @@ module HeadedMegaparsec
   -- * Execution
   toParsec,
   -- * Transformation
-  headify,
+  wrapToHead,
   label,
   dbg,
   filter,
   -- * Construction
-  head,
-  tail,
-  headAndTail,
-  -- ** Control
+  parse,
   endHead,
 )
 where
@@ -198,10 +195,12 @@ mapParsec fn (HeadedParsec p) = HeadedParsec (fn p)
 -------------------------
 
 {-|
-Make any parser a head parser.
+Wrap a parser to be usable as a whole in a head block,
+allowing it in effect to be composed with the following parsers into a single `try` when executed,
+no matter whether it contains `endHead` or not.
 -}
-headify :: (Ord err, Stream strm) => HeadedParsec err strm a -> HeadedParsec err strm a
-headify = mapParsec $ fmap Left . Megaparsec.contPossibly
+wrapToHead :: (Ord err, Stream strm) => HeadedParsec err strm a -> HeadedParsec err strm a
+wrapToHead = mapParsec $ fmap Left . Megaparsec.contPossibly
 
 {-|
 Label a headed parser.
@@ -247,24 +246,6 @@ filter err pred = mapParsec $ \ p -> do
 
 {-|
 Lift a megaparsec parser as a head parser.
-
-Composing consecutive heads results in one head.
-This is the whole point of this library,
-because consecutive `try`s do not compose.
-
-Wrap the parts that uniquely distinguish the parser amongst its possible alternatives.
-It only makes sense to wrap the parts in the beginning of the parser,
-because once you hit tail, all the following heads will be treated as tail as well.
-
-E.g., in case of SQL if a statement begins with a keyword "select",
-we can be certain that what follows it needs to be parsed as select.
-This means that it would make sense to declare the parsers thus:
-
->stmt = SelectStmt <$> select <|> InsertStmt <$> insert ...
->select = head (string' "select") *> tail (...)
->insert = head (string' "insert") *> tail (...)
->update = head (string' "update") *> tail (...)
->delete = head (string' "delete") *> tail (...)
 -}
 head :: (Ord err, Stream strm) => Parsec err strm a -> HeadedParsec err strm a
 head = HeadedParsec . fmap Left
@@ -289,12 +270,18 @@ headAndTail fn headP tailP = HeadedParsec $ do
     b <- tailP
     return (fn a b)
 
+{-|
+Lift a megaparsec parser.
+-}
+parse :: (Ord err, Stream strm) => Parsec err strm a -> HeadedParsec err strm a
+parse = head
+
 
 -- * Control
 -------------------------
 
 {-|
-Make all the following parsers compose to tail.
+Make all the following parsers compose as tail.
 -}
 endHead :: (Stream strm) => HeadedParsec err strm ()
 endHead = HeadedParsec (return (Right (return ())))
