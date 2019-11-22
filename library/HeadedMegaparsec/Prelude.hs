@@ -79,21 +79,9 @@ import Unsafe.Coerce as Exports
 -------------------------
 import Control.Selective as Exports
 
--- bytestring
--------------------------
-import Data.ByteString as Exports (ByteString)
-
 -- text
 -------------------------
 import Data.Text as Exports (Text)
-
--- containers
--------------------------
-import Data.IntMap.Strict as Exports (IntMap)
-import Data.IntSet as Exports (IntSet)
-import Data.Map.Strict as Exports (Map)
-import Data.Sequence as Exports (Seq)
-import Data.Set as Exports (Set)
 
 -- case-insensitive
 -------------------------
