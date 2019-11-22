@@ -6,7 +6,6 @@ module HeadedMegaparsec
   toParsec,
   -- * Transformation
   headify,
-  tailify,
   label,
   dbg,
   filter,
@@ -203,12 +202,6 @@ Make any parser a head parser.
 -}
 headify :: (Ord err, Stream strm) => HeadedParsec err strm a -> HeadedParsec err strm a
 headify = mapParsec $ fmap Left . Megaparsec.contPossibly
-
-{-|
-Make any parser a tail parser.
--}
-tailify :: (Ord err, Stream strm) => HeadedParsec err strm a -> HeadedParsec err strm a
-tailify = mapParsec $ return . Right . Megaparsec.contPossibly
 
 {-|
 Label a headed parser.
