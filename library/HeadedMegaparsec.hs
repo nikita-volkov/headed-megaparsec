@@ -23,7 +23,6 @@ import qualified Text.Megaparsec as Megaparsec
 import qualified Text.Megaparsec.Debug as Megaparsec
 import qualified Text.Megaparsec.Char as MegaparsecChar
 import qualified Text.Megaparsec.Char.Lexer as MegaparsecLexer
-import qualified Data.Text as Text
 
 {- $setup
 

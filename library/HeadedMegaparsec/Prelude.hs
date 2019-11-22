@@ -1,7 +1,6 @@
 module HeadedMegaparsec.Prelude
 ( 
   module Exports,
-  showAsText,
 )
 where
 
@@ -79,13 +78,6 @@ import Unsafe.Coerce as Exports
 -------------------------
 import Control.Selective as Exports
 
--- text
--------------------------
-import Data.Text as Exports (Text)
-
 -- case-insensitive
 -------------------------
 import Data.CaseInsensitive as Exports (CI, FoldCase)
-
-showAsText :: Show a => a -> Text
-showAsText = show >>> fromString
