@@ -1,4 +1,4 @@
-module HeadedMegaparsec
+module HeadedMegaparsec.HeadedParsec
 (
   -- * Types
   HeadedParsec,
