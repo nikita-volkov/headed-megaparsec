@@ -1,4 +1,18 @@
 module HeadedMegaparsec.TrailingParsec
+(
+  TrailingParsec,
+  -- * Execution
+  toHeadedParsec,
+  toParsec,
+  -- * Transformation
+  label,
+  dbg,
+  filter,
+  -- * Construction
+  parse,
+  parseHeaded,
+  endHead,
+)
 where
 
 import HeadedMegaparsec.Prelude hiding (try, head, tail, filter)
@@ -99,7 +113,13 @@ filter err pred = mapHeadedParsec (HeadedParsec.filter err pred)
 Lift a megaparsec parser.
 -}
 parse :: (Ord err, Stream strm) => Parsec err strm a -> TrailingParsec err strm a
-parse = TrailingParsec . pure . HeadedParsec.parse
+parse = parseHeaded . HeadedParsec.parse
+
+{-|
+Lift a headed parser.
+-}
+parseHeaded :: (Ord err, Stream strm) => HeadedParsec err strm a -> TrailingParsec err strm a
+parseHeaded = TrailingParsec . pure
 
 
 -- * Control
