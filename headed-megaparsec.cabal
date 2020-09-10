@@ -26,7 +26,7 @@ library
     HeadedMegaparsec.Megaparsec
     HeadedMegaparsec.Prelude
   build-depends:
-    base >=4.9 && <5,
+    base >=4.12 && <5,
     case-insensitive >=1.2 && <2,
     megaparsec >=9 && <10,
     parser-combinators >=1.1 && <1.3,
