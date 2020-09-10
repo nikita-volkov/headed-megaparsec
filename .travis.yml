@@ -31,26 +31,27 @@ install:
       constraint_options=(
       );
     fi;
+  # Install executables
+  - cabal v1-install happy
+  - cabal v1-install doctest
   # Install the library dependencies
-  - cabal install --only-dependencies --reorder-goals --force-reinstalls
+  - cabal v1-install --only-dependencies --reorder-goals --force-reinstalls
       ${constraint_options[@]}
       $([ "$tests" = "1" ] && echo "--enable-tests")
       $([ "$benchmarks" = "1" ] && echo "--enable-benchmarks")
   # Build the library
-  - cabal build
-  # Install doctest
-  - cabal install doctest
+  - cabal v1-build
   # Configure and build the remaining stuff
-  - cabal configure 
+  - cabal v1-configure 
       $([ "$tests" = "1" ] && echo "--enable-tests")
       $([ "$benchmarks" = "1" ] && echo "--enable-benchmarks")
       -f doctest
-  - cabal build
+  - cabal v1-build
 
 script:
   - |
     if [ "$tests" = "1" ];
     then
-      cabal doctest;
-      cabal test --show-details=always;
+      cabal v1-test --show-details=always;
+      cabal v1-doctest;
     fi;
