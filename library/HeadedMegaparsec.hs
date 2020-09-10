@@ -43,6 +43,7 @@ With headed parser you don't need to use `try` at all.
 
 ==__Examples__
 
+>>> import Prelude
 >>> import qualified Text.Megaparsec as M
 >>> import qualified Text.Megaparsec.Char as M
 >>> import qualified Text.Megaparsec.Char.Lexer as ML
