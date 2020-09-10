@@ -66,7 +66,7 @@ With headed parser you don't need to use `try` at all.
         decimal = parse ML.decimal
         string' = parse . M.string'
         -- Syntax parsers:
-        targets = sepBy1 target commaSeparator
+        targets = M.sepBy1 target commaSeparator
         target = Left <$> char '*' <|> Right <$> decimal
         commaSeparator = space *> char ',' *> endHead *> space
         limit = string' "limit" *> endHead *> space1 *> decimal
