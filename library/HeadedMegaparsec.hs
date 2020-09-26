@@ -91,7 +91,7 @@ expecting integer or white space
 (Just [Right 1,Right 2],Just 2)
 
 -}
-newtype HeadedParsec err strm a = HeadedParsec (Parsec err strm (Either a (Parsec err strm a)))
+newtype HeadedParsec err strm a = HeadedParsec (Parsec err strm (Eit/her a (Parsec err strm a)))
 
 {-|
 A helper required for hacking `dbg`.
@@ -228,7 +228,7 @@ The first parameter is a custom label.
 This function is a wrapper around `Megaparsec.dbg`.
 It generates two debugging entries: one for head and one for tail.
 -}
-dbg :: (Ord err, Megaparsec.ShowErrorComponent err, Megaparsec.VisualStream strm, Show a) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
+dbg :: (Ord err, Megaparsec.ShowErrorComponent err, Megaparsec.Stream strm, Show a) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
 dbg label = mapParsec $ \ p -> do
   Showable _ junction <- Megaparsec.dbg (label <> "/head") (fmap (either (\ a -> Showable (show a) (Left a)) (Showable "<tail parser>" . Right)) p)
   case junction of
