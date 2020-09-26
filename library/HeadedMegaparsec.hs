@@ -91,7 +91,7 @@ expecting integer or white space
 (Just [Right 1,Right 2],Just 2)
 
 -}
-newtype HeadedParsec err strm a = HeadedParsec (Parsec err strm (Eit/her a (Parsec err strm a)))
+newtype HeadedParsec err strm a = HeadedParsec (Parsec err strm (Either a (Parsec err strm a)))
 
 {-|
 A helper required for hacking `dbg`.
