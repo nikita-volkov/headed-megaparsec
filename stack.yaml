@@ -1,0 +1,6 @@
+resolver: nightly-2021-11-19
+extra-deps:
+  - acc-0.2.0.1
+  - rebase-1.14
+  - rerebase-1.14
+  - selective-0.5
