@@ -1,5 +1,5 @@
 name: headed-megaparsec
-version: 0.2.0.2
+version: 0.2.1
 category: Parsers, Parsing, Megaparsec
 synopsis: More informative parser
 homepage: https://github.com/nikita-volkov/headed-megaparsec
