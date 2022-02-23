@@ -1,15 +1,12 @@
-{-|
-Extra megaparsec combinators.
--}
-module HeadedMegaparsec.Megaparsec
-where
+-- |
+-- Extra megaparsec combinators.
+module HeadedMegaparsec.Megaparsec where
 
-import HeadedMegaparsec.Prelude hiding (try, head, body)
-import Text.Megaparsec hiding (some, endBy1, someTill, sepBy1, sepEndBy1)
-import Text.Megaparsec.Char
 import Control.Applicative.Combinators
+import HeadedMegaparsec.Prelude hiding (body, head, try)
+import Text.Megaparsec hiding (endBy1, sepBy1, sepEndBy1, some, someTill)
+import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as Lexer
-
 
 contPossibly :: (Ord err, Stream strm) => Parsec err strm (Either a (Parsec err strm a)) -> Parsec err strm a
 contPossibly p = do
