@@ -8,6 +8,7 @@ module HeadedMegaparsec
     -- * Transformation
     wrapToHead,
     label,
+    hidden,
     dbg,
     filter,
 
@@ -205,6 +206,11 @@ wrapToHead = mapParsec $ fmap Left . Megaparsec.contPossibly
 -- Works the same way as megaparsec's `Megaparsec.label`.
 label :: (Ord err, Stream strm) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
 label label = mapParsec (Megaparsec.label label)
+
+-- |
+-- Adaptation of 'Megaparsec.hidden'.
+hidden :: (Ord err, Stream strm) => HeadedParsec err strm a -> HeadedParsec err strm a
+hidden = mapParsec Megaparsec.hidden
 
 -- |
 -- Make a parser print debugging information when evaluated.
