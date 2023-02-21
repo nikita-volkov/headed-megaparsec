@@ -243,8 +243,6 @@ filter err pred = mapParsec $ \p -> do
           then return a
           else fail (err a)
 
--- *
-
 -- |
 -- Lift a megaparsec parser as a head parser.
 head :: (Ord err, Stream strm) => Parsec err strm a -> HeadedParsec err strm a
