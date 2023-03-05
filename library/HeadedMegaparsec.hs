@@ -23,8 +23,6 @@ import qualified HeadedMegaparsec.Megaparsec as Megaparsec
 import HeadedMegaparsec.Prelude hiding (filter, head, tail, try)
 import Text.Megaparsec (Parsec, Stream)
 import qualified Text.Megaparsec as Megaparsec
-import qualified Text.Megaparsec.Char as MegaparsecChar
-import qualified Text.Megaparsec.Char.Lexer as MegaparsecLexer
 import qualified Text.Megaparsec.Debug as Megaparsec
 
 -- $setup
@@ -218,7 +216,7 @@ hidden = mapParsec Megaparsec.hidden
 --
 -- This function is a wrapper around `Megaparsec.dbg`.
 -- It generates two debugging entries: one for head and one for tail.
-dbg :: (Ord err, Megaparsec.ShowErrorComponent err, Megaparsec.VisualStream strm, Show a) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
+dbg :: (Megaparsec.ShowErrorComponent err, Megaparsec.VisualStream strm, Show a) => String -> HeadedParsec err strm a -> HeadedParsec err strm a
 dbg label = mapParsec $ \p -> do
   Showable _ junction <- Megaparsec.dbg (label <> "/head") (fmap (either (\a -> Showable (show a) (Left a)) (Showable "<tail parser>" . Right)) p)
   case junction of
@@ -228,7 +226,7 @@ dbg label = mapParsec $ \p -> do
 -- |
 -- Filter the results of parser based on a predicate,
 -- failing with a parameterized message.
-filter :: (Ord err, Stream strm) => (a -> String) -> (a -> Bool) -> HeadedParsec err strm a -> HeadedParsec err strm a
+filter :: (Stream strm) => (a -> String) -> (a -> Bool) -> HeadedParsec err strm a -> HeadedParsec err strm a
 filter err pred = mapParsec $ \p -> do
   junction <- p
   case junction of
@@ -245,31 +243,12 @@ filter err pred = mapParsec $ \p -> do
 
 -- |
 -- Lift a megaparsec parser as a head parser.
-head :: (Ord err, Stream strm) => Parsec err strm a -> HeadedParsec err strm a
+head :: Parsec err strm a -> HeadedParsec err strm a
 head = HeadedParsec . fmap Left
 
 -- |
--- Lift a megaparsec parser as a tail parser.
---
--- Composing consecutive tails results in one tail.
---
--- Composing consecutive head and tail leaves the head still composable with preceding head.
-tail :: (Stream strm) => Parsec err strm a -> HeadedParsec err strm a
-tail = HeadedParsec . return . Right
-
--- |
--- Lift both head and tail megaparsec parsers, composing their results.
-headAndTail :: (Ord err, Stream strm) => (head -> tail -> a) -> Parsec err strm head -> Parsec err strm tail -> HeadedParsec err strm a
-headAndTail fn headP tailP = HeadedParsec $ do
-  a <- headP
-  return $
-    Right $ do
-      b <- tailP
-      return (fn a b)
-
--- |
 -- Lift a megaparsec parser.
-parse :: (Ord err, Stream strm) => Parsec err strm a -> HeadedParsec err strm a
+parse :: Parsec err strm a -> HeadedParsec err strm a
 parse = head
 
 -- * Control
