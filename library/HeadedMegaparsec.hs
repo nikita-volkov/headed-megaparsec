@@ -114,12 +114,14 @@ instance (Ord err, Stream strm) => Applicative (HeadedParsec err strm) where
         junction2 <- p2
         case junction2 of
           Left a -> return (Left (aToB a))
-          Right tailP2 -> return $
-            Right $ do
+          Right tailP2 -> return
+            $ Right
+            $ do
               a <- tailP2
               return (aToB a)
-      Right tailP1 -> return $
-        Right $ do
+      Right tailP1 -> return
+        $ Right
+        $ do
           aToB <- tailP1
           junction2 <- p2
           case junction2 of
@@ -139,8 +141,9 @@ instance (Ord err, Stream strm) => Selective (HeadedParsec err strm) where
           case junction2 of
             Left aToB -> return (Left (aToB a))
             Right tailP2 -> return (Right (fmap ($ a) tailP2))
-      Right tailP1 -> return $
-        Right $ do
+      Right tailP1 -> return
+        $ Right
+        $ do
           eitherAOrB <- tailP1
           case eitherAOrB of
             Right b -> return b
@@ -156,8 +159,9 @@ instance (Ord err, Stream strm) => Monad (HeadedParsec err strm) where
     junction1 <- p1
     case junction1 of
       Left a -> case k2 a of HeadedParsec p2 -> p2
-      Right tailP1 -> return $
-        Right $ do
+      Right tailP1 -> return
+        $ Right
+        $ do
           a <- tailP1
           Megaparsec.contPossibly $ case k2 a of HeadedParsec p2 -> p2
 
@@ -234,8 +238,9 @@ filter err pred = mapParsec $ \p -> do
       if pred a
         then return (Left a)
         else fail (err a)
-    Right tailP -> return $
-      Right $ do
+    Right tailP -> return
+      $ Right
+      $ do
         a <- tailP
         if pred a
           then return a
